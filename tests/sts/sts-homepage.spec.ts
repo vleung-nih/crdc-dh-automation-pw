@@ -6,7 +6,7 @@
  * These are stub tests; replace with real assertions when STS is available.
  */
 import { test, expect } from '../../src/fixtures/test.fixture';
-import { StsHomePage } from '../../src/pages/sts-home.page';
+import { StsHomePage } from '../../src/pages/sts/sts-home.page';
 
 test.describe('STS Homepage', () => {
   test.beforeEach(async ({ page }) => {

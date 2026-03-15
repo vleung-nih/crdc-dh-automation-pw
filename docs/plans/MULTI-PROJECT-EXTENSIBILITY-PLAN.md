@@ -23,7 +23,7 @@ No need to create separate repos per project; this repo becomes the central test
 
 - **Playwright projects** — One project (`crdc-homepage`) already defines baseURL, testMatch, and timeout. Playwright supports many projects; selection is via `--project=name`.
 - **Environments** — `TEST_ENV` (prod, qa, stage, qa2) plus `getBaseURL(project)` provide multi-env per app.
-- **Layout** — Option B: `tests/crdc/`, `tests/sts/`, plus `tests/smoke/`, `tests/integration/`; page objects in `src/pages/`; minimal shared fixture.
+- **Layout** — Option B: `tests/crdc/`, `tests/sts/`, plus `tests/smoke/`; page objects in `src/pages/` (per-app subfolders); minimal shared fixture. E2E flows live under `tests/<app>/`.
 - **Scripts** — `npm run test:crdc` runs one project; the pattern can be repeated for other projects.
 
 ### What is limiting
@@ -92,8 +92,8 @@ Each project’s baseURL is resolved at config load time using current env vars,
 
 ### 3.5 Test and source layout — **Option B (adopted)**
 
-- **Option B (per-app dirs)** — App specs live under per-app dirs: `tests/crdc/`, `tests/sts/`, etc. Each Playwright project uses `testMatch` with a path pattern (e.g. `/crdc\/.*\.spec\.ts/`, `/sts\/.*\.spec\.ts/`). Shared suites remain at top level: `tests/smoke/`, `tests/integration/`.
-- **Option A (deprecated)** — Previously all specs were under `tests/ui/` with file naming; we moved to Option B for clearer organization.
+- **Option B (per-app dirs)** — App specs live under per-app dirs: `tests/crdc/`, `tests/sts/`, etc. Each Playwright project uses `testMatch` with a path pattern (e.g. `/crdc\/.*\.spec\.ts/`, `/sts\/.*\.spec\.ts/`). Shared suites remain at top level: `tests/smoke/`. E2E/multi-page flows go in the same app dir.
+- **Option A (deprecated)** — Previously specs lived in a single ui folder with file naming; we moved to Option B (per-app dirs) for clearer organization.
 
 ### 3.6 Fixtures — **Option B (adopted)**
 
@@ -202,6 +202,9 @@ Use this when the team adds support for a new application.
 
 6. **Fixtures (Option B)**  
    - [ ] Do not add the new app to the shared fixture. In the app’s specs, construct the page object from `page` (e.g. `new MyAppPage(page)`). Only add to the fixture if the page is shared across multiple projects.
+
+7. **Page objects**  
+   - [ ] Add new page objects under `src/pages/<app>/` (e.g. `src/pages/crdc/login.page.ts`). Shared base stays at `src/pages/base.page.ts`.
 
 ---
 

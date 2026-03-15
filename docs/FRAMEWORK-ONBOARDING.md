@@ -56,7 +56,7 @@ playwright-framework-vl/
 **Why separate these?**
 
 - **Config in one place:** So we can change timeouts or the base URL without searching through tests. Multiple apps and environments are supported via `PROJECT`, `TEST_ENV`, and `getBaseURL(project)` (see `config/apps.ts`); switch env or Playwright project to run against different targets.
-- **Page objects in `src/pages`:** So all locators and UI actions for a given page live in one class. If a button’s text or test id changes, we update the page object once and all tests that use it stay valid.
+- **Page objects in `src/pages/`:** App-specific pages live under `src/pages/<app>/` (e.g. `crdc/`, `sts/`); shared base at `src/pages/base.page.ts`. So all locators and UI actions for a given page live in one class. If a button’s text or test id changes, we update the page object once and all tests that use it stay valid.
 - **Tests in `tests/`:** So test logic (what to do and what to expect) stays in spec files, and we don’t put assertions inside page objects. That keeps responsibilities clear: pages “do” things, tests “check” outcomes.
 - **Scripts in `scripts/`:** So CI or developers can run a standard set of commands (e.g. smoke only) without remembering long `npx playwright test ...` invocations.
 
@@ -114,7 +114,7 @@ Instead of putting long selectors and repeated “click this, then that” logic
 
 All page classes extend `BasePage`. The base class receives the Playwright `page` and provides a shared `goto(path, options)` method so we can navigate with a consistent pattern (e.g. optional `waitUntil: 'domcontentloaded'` for heavy pages). New pages add their own locators and methods on top of this.
 
-**Example: `HomePage` (`src/pages/home.page.ts`):**
+**Example: `HomePage` (`src/pages/crdc/home.page.ts`):**
 
 - Defines locators for the CRDC hub homepage: government banner, nav links, main heading, Log In link, footer sections, system use warning dialog (by `data-testid`), and Continue button.
 - Methods: `gotoHome()`, `dismissSystemUseWarning()`, `ensureSystemUseWarningDismissed()`.
@@ -205,7 +205,7 @@ More detail: see **docs/RUNNING-TESTS.md**.
 
 **Adding a new page (e.g. Login page):**
 
-1. Create a new class in `src/pages/` that extends `BasePage` (e.g. `login.page.ts` with `LoginPage`).
+1. Create a new class in `src/pages/<app>/` that extends `BasePage` (e.g. `src/pages/crdc/login.page.ts` with `LoginPage`).
 2. Define locators (private/readonly) at the top, using `getByRole`, `getByTestId`, or `getByText` as appropriate.
 3. Add methods for actions (e.g. `enterEmail`, `clickSubmit`) and getters for elements the test will assert on. No `expect` inside the page object.
 4. Update `src/fixtures/test.fixture.ts` to add your new `loginPage` to the `Fixtures` type and `extend` block.
@@ -222,7 +222,7 @@ More detail: see **docs/RUNNING-TESTS.md**.
 ## 10. Summary and where to read more
 
 - **Config** (`config/`) centralizes timeouts and environments so tests stay environment-agnostic.
-- **Page objects** (`src/pages/`) hold locators and actions per page; tests only orchestrate and assert.
+- **Page objects** (`src/pages/<app>/`, shared `base.page.ts`) hold locators and actions per page; tests only orchestrate and assert.
 - **Tests** (`tests/`) are organized by app and suite (crdc, sts, smoke, integration; Option B per-app dirs) and use clear names and comments.
 - **Playwright config** defines projects (browsers, base URL, which tests) and applies constants for timeouts and reporting.
 

@@ -8,7 +8,7 @@
  */
 import { test, expect } from '../../src/fixtures/test.fixture';
 import { getBaseURL } from '../../config/env/urls';
-import { HomePage } from '../../src/pages/home.page';
+import { HomePage } from '../../src/pages/crdc/home.page';
 
 test.describe('CRDC Hub Homepage', () => {
   test.beforeEach(async ({ homePage }) => {

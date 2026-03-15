@@ -1,5 +1,5 @@
 import { test as base } from '@playwright/test';
-import { HomePage } from '../pages/home.page';
+import { HomePage } from '../pages/crdc/home.page';
 
 /**
  * Custom test fixtures. All test files should import { test, expect } from here

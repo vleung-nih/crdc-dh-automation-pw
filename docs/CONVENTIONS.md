@@ -13,7 +13,7 @@ Naming, POM rules, locator strategy, and where test data and secrets live.
 
 ## Page Object Model (POM)
 
-- One class per page (or major UI area) in `src/pages/`.
+- One class per page (or major UI area); app-specific pages in `src/pages/<app>/` (e.g. `crdc/`, `sts/`), shared base in `src/pages/base.page.ts`.
 - Extend `BasePage`; receive `Page` in constructor.
 - **Locators**: Private or readonly, defined at top of class. Prefer `getByRole`, `getByLabel`, `getByTestId`; avoid brittle CSS/XPath.
 - **Action methods**: Perform interactions (click, fill, navigate). Return the next page object or `void`. Use the structured `logger` for traceability.
@@ -43,6 +43,12 @@ Naming, POM rules, locator strategy, and where test data and secrets live.
 - **Test data**: Use `src/fixtures/static/` (JSON, CSV), or factories/builders in `src/data/`. Do not hardcode data inside test methods.
 - **Secrets**: Use environment variables or a secrets manager. Never commit credentials; document placeholders in `.env.example`.
 
+## E2E / multi-page flows
+
+- When a user journey spans multiple pages (e.g. login → submit data → view confirmation), add a spec in the same app dir: `tests/crdc/` or `tests/sts/` (e.g. `tests/crdc/data-submission-flow.spec.ts`). Same Playwright project and baseURL as other specs for that app.
+- Use `test.describe` to group related steps; use page objects for all UI interactions.
+- Use API clients (from `src/api/`) for setup/teardown when possible — avoid UI-based precondition setup.
+
 ## Assertions
 
 - Use the most specific assertion available.
@@ -54,7 +60,7 @@ Naming, POM rules, locator strategy, and where test data and secrets live.
 - Use `test.describe` block names to group tests by feature area.
 - Tag tests with the `tag` option (tags must start with `@`), e.g. `test('title', { tag: ['@regression', '@CRDCDH-1234'] }, async ({ page }) => { ... })`. Run by tag with `npx playwright test --grep @regression` or `--grep @CRDCDH-1234`; use `--grep-invert` to exclude tags.
 - When possible, include a requirement or story reference in the test description comment.
-- Smoke tests go in `tests/smoke/`; app-specific UI tests in `tests/crdc/`, `tests/sts/` (Option B per-app layout); end-to-end flows in `tests/integration/`.
+- Smoke tests go in `tests/smoke/`; app-specific UI tests in `tests/crdc/`, `tests/sts/` (Option B per-app layout); end-to-end flows in `tests/crdc/` or `tests/sts/` (same app dir as page-level specs).
 
 ## Logging
 

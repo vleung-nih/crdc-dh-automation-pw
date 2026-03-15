@@ -1,5 +1,5 @@
-import { BasePage } from './base.page';
-import { logger } from '../utils/logger';
+import { BasePage } from '../base.page';
+import { logger } from '../../utils/logger';
 
 /**
  * Page object for the STS (https://sts.cancer.gov) homepage.

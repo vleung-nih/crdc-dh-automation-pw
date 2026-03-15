@@ -12,7 +12,7 @@ This is a **Playwright + TypeScript** UI test automation framework targeting the
 
 ### Architecture & Structure
 - **Clean layer separation**: `config/` → `src/` → `tests/` follows industry-standard patterns. Config, page objects, and test logic are properly decoupled.
-- **Page Object Model**: [BasePage](file:///Users/vleung1/Development/crdc-dh-automation-pw/src/pages/base.page.ts#8-24) → [HomePage](file:///Users/vleung1/Development/crdc-dh-automation-pw/src/pages/home.page.ts#9-155) inheritance is correct. Locators are `private readonly`, methods don't assert — this matches best practices from Google, Microsoft, and Playwright's own docs.
+- **Page Object Model**: BasePage (`src/pages/base.page.ts`) → HomePage (`src/pages/crdc/home.page.ts`) inheritance is correct. Locators are `private readonly`, methods don't assert — this matches best practices from Google, Microsoft, and Playwright's own docs.
 - **Environment management**: Multi-environment config ([prod](file:///Users/vleung1/Development/crdc-dh-automation-pw/config/env/index.ts#11-12), [qa](file:///Users/vleung1/Development/crdc-dh-automation-pw/config/env/index.ts#12-13), [stage](file:///Users/vleung1/Development/crdc-dh-automation-pw/config/env/index.ts#13-14), [qa2](file:///Users/vleung1/Development/crdc-dh-automation-pw/config/env/index.ts#14-15)) with dynamic loading via `TEST_ENV` and `BASE_URL` override is well-architected.
 - **No magic numbers**: Timeouts centralized in [constants.ts](file:///Users/vleung1/Development/crdc-dh-automation-pw/config/constants.ts) and referenced by config. This is exactly right.
 
@@ -48,7 +48,7 @@ This is a **Playwright + TypeScript** UI test automation framework targeting the
 ```typescript
 // src/fixtures/test.fixture.ts — recommended
 import { test as base } from '@playwright/test';
-import { HomePage } from '../pages/home.page';
+import { HomePage } from '../pages/crdc/home.page';
 
 type Fixtures = {
   homePage: HomePage;
@@ -73,8 +73,8 @@ export { expect } from '@playwright/test';
 > [!IMPORTANT]
 > I recommend **Option A** — Playwright's design intentionally allows locators to be asserted with `expect(locator).toBeVisible()`. This differs from Selenium's WebElement pattern. The convention doc should explicitly state Playwright locator getters are acceptable.
 
-#### 3. `tests/integration/` Is Empty — No Integration Test Strategy
-The directory exists but has no tests and no `.gitkeep`. The onboarding doc describes it, the project structure references it, but there is zero guidance on what an integration test looks like in this framework vs a UI test.
+#### 3. `tests/integration/` — **Resolved**
+*(Originally:* Directory was empty with no integration test strategy. *)* **Resolved:** `tests/integration/` was removed. E2E/multi-page flows live under `tests/crdc/` or `tests/sts/` (same app dir); guidance is in CONVENTIONS.md (“E2E / multi-page flows”).
 
 #### 4. Multiple Empty Source Directories With No Guidance
 `src/components/`, `src/api/`, `src/data/`, `src/hooks/` — all empty, no `.gitkeep`, no README stubs. At enterprise standards, either:
