@@ -10,8 +10,14 @@ export abstract class BasePage {
 
   /**
    * Navigate to a path relative to baseURL.
+   * @param options.waitUntil - Default 'load'; use 'domcontentloaded' for faster navigation on heavy pages.
    */
-  async goto(path: string): Promise<void> {
-    await this.page.goto(path);
+  async goto(
+    path: string,
+    options?: { waitUntil?: 'load' | 'domcontentloaded' | 'commit' }
+  ): Promise<void> {
+    await this.page.goto(path, {
+      waitUntil: options?.waitUntil ?? 'load',
+    });
   }
 }

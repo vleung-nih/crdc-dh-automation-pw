@@ -1,5 +1,7 @@
+import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 import { ELEMENT_TIMEOUT, NAVIGATION_TIMEOUT } from './config/constants';
+import { getCrdcBaseURL } from './config/env/urls';
 
 const baseURL = process.env.BASE_URL ?? 'https://playwright.dev';
 
@@ -24,5 +26,14 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    {
+      name: 'crdc-home',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: getCrdcBaseURL(),
+      },
+      testMatch: /crdc-home\.spec\.ts/,
+      timeout: 60_000,
+    },
   ],
 });

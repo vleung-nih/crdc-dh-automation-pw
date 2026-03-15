@@ -1,6 +1,6 @@
 /**
  * Environment configuration loader.
- * Use TEST_ENV (local | dev | staging | production) to select profile.
+ * Use TEST_ENV (prod | qa | stage | qa2) to select CRDC hub profile.
  * Never branch on env inside tests — inject config via fixture or baseURL.
  */
 export type { EnvConfig } from './types';
@@ -8,12 +8,13 @@ export type { EnvConfig } from './types';
 import type { EnvConfig } from './types';
 
 const envMap: Record<string, () => Promise<{ default: EnvConfig }>> = {
-  local: () => import('./local'),
-  dev: () => import('./dev'),
-  staging: () => import('./staging'),
+  prod: () => import('./prod'),
+  qa: () => import('./qa'),
+  stage: () => import('./stage'),
+  qa2: () => import('./qa2'),
 };
 
-const DEFAULT_ENV = 'local';
+const DEFAULT_ENV = 'prod';
 
 export function getEnvName(): string {
   return process.env.TEST_ENV ?? DEFAULT_ENV;
@@ -21,7 +22,7 @@ export function getEnvName(): string {
 
 export async function loadConfig(): Promise<EnvConfig> {
   const envName = getEnvName();
-  const loader = envMap[envName] ?? envMap.local;
+  const loader = envMap[envName] ?? envMap.prod;
   const mod = await loader();
   return mod.default;
 }

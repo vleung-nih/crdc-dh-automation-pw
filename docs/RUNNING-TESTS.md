@@ -8,6 +8,7 @@ CLI commands, environment variables, and how to view reports and traces.
 |---------|-------------|
 | `npm test` | Run all tests (default: list reporter + HTML report). |
 | `npm run test:smoke` | Run only `tests/smoke/`. |
+| `npm run test:crdc` | Run CRDC hub homepage POC tests (hub.datacommons.cancer.gov). |
 | `npm run test:ui` | Open Playwright UI mode (explore, run, debug). |
 | `npm run test:headed` | Run tests with browser visible. |
 | `npm run test:debug` | Run with Playwright inspector (step-through). |
@@ -24,12 +25,45 @@ Both respect `TEST_ENV` and forward extra args to `playwright test`.
 
 | Variable | Purpose |
 |----------|---------|
-| `TEST_ENV` | Config profile: `local`, `dev`, `staging`. Default: `local`. |
-| `BASE_URL` | Application under test. Overrides env file default; used by `playwright.config.ts`. |
+| `TEST_ENV` | CRDC hub profile: `prod`, `qa`, `stage`, `qa2`. Default: `prod`. |
+| `BASE_URL` | Override the hub URL. If set, it is used instead of the `TEST_ENV` default. |
 | `LOG_LEVEL` | Optional: `debug`, `info`, `warn`, `error`. Default: `info`. |
 | `CI` | Set by most CI systems; enables retries and reduces workers. |
 
-Copy `.env.example` to `.env` and set values as needed. Do not commit `.env`.
+**TEST_ENV vs BASE_URL:** Set **TEST_ENV** to pick a named environment (prod, qa, stage, qa2); each has a default URL in `config/env/urls.ts`. Set **BASE_URL** only when you need a specific URL (e.g. a custom host). If both are set, **BASE_URL wins** and the TEST_ENV default is ignored. You typically set only one: use TEST_ENV for standard envs, or BASE_URL for a one-off URL.
+
+### Using a `.env` file
+
+The project loads `.env` automatically (via `dotenv`) when Playwright starts. To run against a specific environment without passing vars on the command line:
+
+1. Copy `.env.example` to `.env` in the project root.
+2. Edit `.env` and set `TEST_ENV` (e.g. `TEST_ENV=qa`) and optionally `BASE_URL` if you want to override.
+3. Run `npm run test:crdc` (or any test command); values from `.env` are applied.
+
+Do not commit `.env`; it is for local overrides and may contain secrets.
+
+## CRDC Hub Homepage POC
+
+To run the homepage tests against the CRDC Submission Portal:
+
+```bash
+npm run test:crdc
+```
+
+This uses the `crdc-home` project, which sets `baseURL` to `https://hub.datacommons.cancer.gov` and runs only `tests/ui/crdc-home.spec.ts`. By default tests run **headless**. To watch the browser:
+
+```bash
+npm run test:crdc:headed
+```
+
+Alternatively:
+
+```bash
+npx playwright test --project=crdc-home
+npx playwright test --project=crdc-home --headed
+```
+
+Or run with a custom base URL: `BASE_URL=https://hub.datacommons.cancer.gov npx playwright test tests/ui/crdc-home.spec.ts`
 
 ## Run by project (browser)
 

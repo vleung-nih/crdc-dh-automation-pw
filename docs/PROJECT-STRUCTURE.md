@@ -10,11 +10,12 @@ playwright-framework-vl/
 │   └── rules/
 │       └── sdet-framework-standards.md   # SDET/cursor rules (always reference)
 ├── config/
-│   ├── env/                             # Environment-specific config
+│   ├── env/                             # Environment-specific config (TEST_ENV)
 │   │   ├── index.ts                     # Loader by TEST_ENV
-│   │   ├── local.ts
-│   │   ├── dev.ts
-│   │   └── staging.ts
+│   │   ├── prod.ts                      # CRDC hub production (default)
+│   │   ├── qa.ts                        # CRDC hub QA
+│   │   ├── stage.ts                     # CRDC hub stage
+│   │   └── qa2.ts                       # CRDC hub QA2
 │   └── constants.ts                     # Timeouts, no magic numbers
 ├── src/
 │   ├── pages/                           # Page Object Model classes
