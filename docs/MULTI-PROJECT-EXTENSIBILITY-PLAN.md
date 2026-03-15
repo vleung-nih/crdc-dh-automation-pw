@@ -2,7 +2,7 @@
 
 This document describes how to evolve the framework from a single-application (CRDC) setup to a **multi-project, multi-environment** model. The goal is to use **one repository** to orchestrate test runs for many different projects (e.g. CRDC and a dozen others), each with its own environments (prod, qa, stage, etc.), similar to Katalon’s profile/suite model—run the right suite for the right project and environment without maintaining separate repos.
 
-**Status:** Plan only. Not yet implemented. Use this as a reference for team discussion and future implementation.
+**Status:** Phase 1–2 implemented. Central app map in `config/apps.ts`; `getBaseURL(project)`; PROJECT + TEST_ENV; CRDC and STS (stub) projects. Use this doc for adding more apps and for Phase 3+ conventions.
 
 ---
 

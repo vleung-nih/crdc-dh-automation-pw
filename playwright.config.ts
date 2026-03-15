@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 import { ELEMENT_TIMEOUT, NAVIGATION_TIMEOUT } from './config/constants';
-import { getCrdcBaseURL } from './config/env/urls';
+import { getBaseURL } from './config/env/urls';
 
-const baseURL = getCrdcBaseURL();
+// Default baseURL follows PROJECT + TEST_ENV (or BASE_URL override). See config/apps.ts.
+const baseURL = getBaseURL();
 
 export default defineConfig({
   testDir: './tests',
@@ -30,9 +31,18 @@ export default defineConfig({
       name: 'crdc-homepage',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: getCrdcBaseURL(),
+        baseURL: getBaseURL('crdc'),
       },
       testMatch: /crdc-homepage\.spec\.ts/,
+      timeout: 60_000,
+    },
+    {
+      name: 'sts-homepage',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: getBaseURL('sts'),
+      },
+      testMatch: /sts-homepage\.spec\.ts/,
       timeout: 60_000,
     },
   ],

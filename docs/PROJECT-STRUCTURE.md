@@ -10,15 +10,17 @@ crdc-dh-automation-pw/
 │   └── workflows/
 │       └── ci.yml                          # GitHub Actions CI/CD pipeline
 ├── config/
-│   ├── env/                                # Environment-specific config (TEST_ENV)
-│   │   ├── index.ts                        # Env name resolver and re-exports
-│   │   ├── types.ts                        # EnvConfig type definition
-│   │   └── urls.ts                         # Sync base URL resolver by TEST_ENV
-│   └── constants.ts                        # Timeouts, no magic numbers
+│   ├── apps.ts                             # App/env → URL map; getBaseURL(project)
+│   ├── constants.ts                        # Timeouts, DEFAULT_PROJECT, DEFAULT_ENV
+│   └── env/                                # Env types, getBaseURL/getCrdcBaseURL
+│       ├── index.ts                        # Env name resolver and re-exports
+│       ├── types.ts                        # EnvConfig type definition
+│       └── urls.ts                         # getCrdcBaseURL, getBaseURL re-export
 ├── src/
 │   ├── pages/                              # Page Object Model classes
 │   │   ├── base.page.ts                    # Base class for all pages
-│   │   └── home.page.ts                    # CRDC Hub homepage
+│   │   ├── home.page.ts                    # CRDC Hub homepage
+│   │   └── sts-home.page.ts                # STS homepage (stub)
 │   ├── components/                         # Reusable UI components (modals, nav)
 │   ├── api/                                # API client wrappers (optional)
 │   ├── data/                               # Test data factories, builders
@@ -30,7 +32,8 @@ crdc-dh-automation-pw/
 │   └── hooks/                              # Global setup/teardown
 ├── tests/
 │   ├── ui/                                 # UI tests by feature
-│   │   └── crdc-homepage.spec.ts           # CRDC Hub homepage tests
+│   │   ├── crdc-homepage.spec.ts           # CRDC Hub homepage tests
+│   │   └── sts-homepage.spec.ts            # STS homepage stub tests
 │   ├── smoke/                              # Critical path smoke tests
 │   │   └── smoke.spec.ts                   # Health check suite
 │   └── integration/                        # Cross-layer / E2E
