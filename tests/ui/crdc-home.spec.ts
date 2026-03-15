@@ -2,17 +2,16 @@
  * CRDC Submission Portal homepage tests.
  * Run: npm run test:crdc (or npx playwright test --project=crdc-home).
  * Base URL comes from TEST_ENV (prod | qa | stage | qa2) or BASE_URL override.
- * Uses HomePage page object; assertions in tests only. beforeEach navigates to
- * the hub and dismisses the system use warning dialog so tests run against the
- * main content.
+ * Uses HomePage page object via fixture injection; assertions in tests only.
+ * beforeEach navigates to the hub and dismisses the system use warning dialog
+ * so tests run against the main content.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../src/fixtures/test.fixture';
 import { getCrdcBaseURL } from '../../config/env/urls';
 import { HomePage } from '../../src/pages/home.page';
 
 test.describe('CRDC Hub Homepage', () => {
-  test.beforeEach(async ({ page }) => {
-    const homePage = new HomePage(page);
+  test.beforeEach(async ({ homePage }) => {
     await homePage.gotoHome();
     // Wait for warning dialog to appear (React useEffect), then dismiss so tests run behind it
     await homePage.ensureSystemUseWarningDismissed();
@@ -29,8 +28,10 @@ test.describe('CRDC Hub Homepage', () => {
    * Asserts the main H1 "Login to CRDC Submission Portal", the Login.gov
    * prompt text, and the "Log In" link are visible.
    */
-  test('should display main heading and login prompt', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should display main heading and login prompt', async ({
+    page,
+    homePage,
+  }) => {
     await expect(homePage.getMainHeading()).toBeVisible();
     await expect(
       page.getByText(/Please login with a Login.gov account/, { exact: false })
@@ -42,8 +43,7 @@ test.describe('CRDC Hub Homepage', () => {
    * Asserts all top-level nav items are visible: Submission Requests, Data
    * Submissions, Data Explorer, Documentation, Model Navigator, Login.
    */
-  test('should show primary navigation links', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should show primary navigation links', async ({ homePage }) => {
     await expect(homePage.getNavSubmissionRequests()).toBeVisible();
     await expect(homePage.getNavDataSubmissions()).toBeVisible();
     await expect(homePage.getNavDataExplorer()).toBeVisible();
@@ -56,8 +56,7 @@ test.describe('CRDC Hub Homepage', () => {
    * Asserts the US government banner text "An official website of the United
    * States government" is visible in the header.
    */
-  test('should show government banner', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should show government banner', async ({ homePage }) => {
     await expect(homePage.getGovBanner()).toBeVisible();
   });
 
@@ -65,9 +64,8 @@ test.describe('CRDC Hub Homepage', () => {
    * Asserts the footer sections "More Information" and "Policies" are visible.
    */
   test('should show footer with More Information and Policies', async ({
-    page,
+    homePage,
   }) => {
-    const homePage = new HomePage(page);
     await expect(homePage.getFooterMoreInfo()).toBeVisible();
     await expect(homePage.getFooterPolicies()).toBeVisible();
   });
@@ -77,9 +75,8 @@ test.describe('CRDC Hub Homepage', () => {
    * visible.
    */
   test('should show System Info and Release Notes in footer', async ({
-    page,
+    homePage,
   }) => {
-    const homePage = new HomePage(page);
     await expect(homePage.getFooterSystemInfo()).toBeVisible();
     await expect(homePage.getFooterReleaseNotes()).toBeVisible();
   });
@@ -97,13 +94,13 @@ test.describe('CRDC Hub Homepage', () => {
     const page = await context.newPage();
     try {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
-      const homePage = new HomePage(page);
-      await expect(homePage.getSystemUseDialog()).toBeVisible({
+      const freshHomePage = new HomePage(page);
+      await expect(freshHomePage.getSystemUseDialog()).toBeVisible({
         timeout: 15_000,
       });
-      await expect(homePage.getDialogContinueButton()).toBeVisible();
-      await homePage.dismissSystemUseWarning();
-      await expect(homePage.getSystemUseDialog()).not.toBeVisible();
+      await expect(freshHomePage.getDialogContinueButton()).toBeVisible();
+      await freshHomePage.dismissSystemUseWarning();
+      await expect(freshHomePage.getSystemUseDialog()).not.toBeVisible();
     } finally {
       await context.close();
     }
@@ -113,8 +110,10 @@ test.describe('CRDC Hub Homepage', () => {
    * Clicks the main "Log In" link and asserts navigation to NIH SSO
    * (auth.nih.gov), not a hub path.
    */
-  test('should navigate to login when Log In is clicked', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should navigate to login when Log In is clicked', async ({
+    homePage,
+    page,
+  }) => {
     await homePage.getLoginLink().click();
     await expect(page).toHaveURL(/auth\.nih\.gov/);
   });

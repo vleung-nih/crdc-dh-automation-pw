@@ -1,11 +1,21 @@
 import { test as base } from '@playwright/test';
+import { HomePage } from '../pages/home.page';
 
 /**
- * Custom test fixture. Extend this to inject shared dependencies (e.g. config, page objects).
- * Use for authenticated context or pre-wired page factories when needed.
+ * Custom test fixtures. All test files should import { test, expect } from here
+ * instead of from '@playwright/test' so they receive injected page objects.
+ *
+ * Add new page objects to the Fixtures type and the extend block as the
+ * framework grows (e.g. loginPage, dashboardPage).
  */
-export const test = base.extend<Record<string, unknown>>({
-  // Add custom fixtures here, e.g. authenticatedPage, config
+type Fixtures = {
+  homePage: HomePage;
+};
+
+export const test = base.extend<Fixtures>({
+  homePage: async ({ page }, use) => {
+    await use(new HomePage(page));
+  },
 });
 
 export { expect } from '@playwright/test';

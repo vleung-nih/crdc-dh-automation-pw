@@ -30,23 +30,18 @@ npm run test:ui
 
 # Open last report
 npm run report
+
+# Lint and type check
+npm run lint
+npm run typecheck
 ```
 
 ## Documentation
 
-- **[Framework onboarding](docs/FRAMEWORK-ONBOARDING.md)** — End-to-end guide to how the framework works and why it’s structured this way (for QA engineers joining the project).
-
-## Project structure
-
-See [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md) for the directory layout and responsibilities.
-
-## Conventions
-
-See [docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming, POM rules, locator strategy, and test data.
-
-## Running tests
-
-See [docs/RUNNING-TESTS.md](docs/RUNNING-TESTS.md) for CLI commands, environment variables, and viewing reports/traces.
+- **[Framework onboarding](docs/FRAMEWORK-ONBOARDING.md)** — End-to-end guide to how the framework works and why it's structured this way (for QA engineers joining the project).
+- **[Project structure](docs/PROJECT-STRUCTURE.md)** — Directory layout and responsibilities.
+- **[Conventions](docs/CONVENTIONS.md)** — Naming, POM rules, fixtures, locator strategy, and test data.
+- **[Running tests](docs/RUNNING-TESTS.md)** — CLI commands, environment variables, and viewing reports/traces.
 
 ## CRDC Hub Homepage POC
 
@@ -60,7 +55,15 @@ Run with: `npm run test:crdc` (uses project `crdc-home` with baseURL `https://hu
 ## Configuration
 
 - Copy `.env.example` to `.env` and set `TEST_ENV` and `BASE_URL` as needed.
-- Timeouts and constants live in `config/constants.ts`; environment-specific config in `config/env/`.
+- Timeouts and constants live in `config/constants.ts`; environment URL resolution in `config/env/urls.ts`.
+
+## CI/CD
+
+The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs:
+
+1. **Lint & Type Check** — on every push and PR
+2. **Smoke Tests** — on every push and PR
+3. **CRDC Regression** — on push to `main` or manual dispatch
 
 ## License
 

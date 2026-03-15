@@ -13,7 +13,7 @@
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "npx tsc --noEmit"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",

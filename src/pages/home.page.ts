@@ -1,5 +1,5 @@
-import type { Page } from '@playwright/test';
 import { BasePage } from './base.page';
+import { logger } from '../utils/logger';
 
 /**
  * Page object for the CRDC Submission Portal homepage (hub.datacommons.cancer.gov).
@@ -78,6 +78,7 @@ export class HomePage extends BasePage {
    * Uses domcontentloaded to avoid timeout on heavy pages when running headed or in parallel.
    */
   async gotoHome(): Promise<void> {
+    logger.info('Navigating to CRDC Hub homepage');
     await this.goto('/', { waitUntil: 'domcontentloaded' });
   }
 
@@ -87,6 +88,7 @@ export class HomePage extends BasePage {
    */
   async dismissSystemUseWarning(): Promise<void> {
     if (await this.systemUseDialog.isVisible()) {
+      logger.info('Dismissing system use warning dialog');
       await this.dialogContinueButton.click();
     }
   }
@@ -99,9 +101,10 @@ export class HomePage extends BasePage {
   async ensureSystemUseWarningDismissed(timeoutMs = 15_000): Promise<void> {
     try {
       await this.systemUseDialog.waitFor({ state: 'visible', timeout: timeoutMs });
+      logger.info('System use warning dialog appeared; dismissing');
       await this.dialogContinueButton.click();
     } catch {
-      // Dialog did not appear within timeout; proceed (e.g. sessionStorage already set)
+      logger.debug('System use warning dialog did not appear (sessionStorage may already be set)');
     }
   }
 

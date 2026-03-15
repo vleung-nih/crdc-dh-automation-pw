@@ -129,10 +129,10 @@ Test files live under `tests/`: `tests/ui/` for feature-focused UI tests, `tests
 
 **Structure of a typical spec file:**
 
-1. **Imports:** `test` and `expect` from `@playwright/test`, and the page object(s) from `src/pages/`.
+1. **Imports:** `test` and `expect` from `src/fixtures/test.fixture` (not from `@playwright/test` directly — the custom fixture injects page objects like `homePage`).
 2. **describe block:** `test.describe('CRDC Hub Homepage', () => { ... })` groups tests and can share a **beforeEach**.
-3. **beforeEach:** Runs before every test in the suite. For the CRDC homepage suite, it navigates to the hub and calls `ensureSystemUseWarningDismissed()` so every test runs with the warning dialog already closed. That way tests don’t have to repeat “dismiss dialog” and don’t accidentally depend on the dialog still being open.
-4. **Individual tests:** Each `test('should ...', async ({ page }) => { ... })` uses the shared `page` (and optionally `browser`). It uses the page object to perform actions and then calls `expect(...)` to assert. Test names follow a “should [expected behavior]” style so the report is readable.
+3. **beforeEach:** Runs before every test in the suite. For the CRDC homepage suite, it uses the injected `homePage` fixture to navigate to the hub and calls `ensureSystemUseWarningDismissed()` so every test runs with the warning dialog already closed. That way tests don't have to repeat "dismiss dialog" and don't accidentally depend on the dialog still being open.
+4. **Individual tests:** Each `test('should ...', async ({ page, homePage }) => { ... })` destructures the fixtures it needs. The `homePage` fixture is automatically created by the framework — no need to call `new HomePage(page)`. Test names follow a "should [expected behavior]" style so the report is readable.
 
 **How test steps are written (async/await and TypeScript):**
 
@@ -143,7 +143,7 @@ If you are new to TypeScript or to the style of code in the specs, here is what 
   - `await expect(homePage.getMainHeading()).toBeVisible();` — it means “wait until the main heading is visible (or the timeout is reached), then continue.”
   Without `await`, the next line would run before the click or navigation finished, and the test could become flaky or fail in a confusing way. So **every step that does something in the browser or waits for a condition is awaited.**
 
-- **`async ({ page }) => { ... }`:** The test function is **async** (so we can use `await` inside it). Playwright passes in an object of **fixtures**; here we **destructure** it to get `page`. So `{ page }` means “give me the `page` fixture from this object.” The `page` is the browser tab (or tab-like context) the test runs in. We pass it to the page object (e.g. `new HomePage(page)`) so the page object can use it to find elements and perform actions on that tab.
+- **`async ({ page, homePage }) => { ... }`:** The test function is **async** (so we can use `await` inside it). Playwright passes in an object of **fixtures**; here we **destructure** it to get `page` and `homePage`. The `homePage` fixture is defined in `src/fixtures/test.fixture.ts` — it automatically creates a `new HomePage(page)` for each test, so you don't have to. The `page` is the browser tab the test runs in.
 
 - **TypeScript:** Types (e.g. `Page`, `Locator`) help the editor and the compiler catch mistakes; you don’t have to write types everywhere because they are often inferred. In the specs we mostly write straightforward code; the page objects and Playwright APIs are already typed.
 
@@ -162,7 +162,12 @@ One test (“should show system use warning dialog before continuing”) needs t
 
 ## 7. Fixtures and hooks (optional reading)
 
-**Fixtures** are a way to inject shared setup into tests (e.g. an already-logged-in page, or a custom config). The framework has a custom fixture in `src/fixtures/test.fixture.ts` that extends Playwright’s default `test`. Right now it doesn’t add extra fixtures, but it’s the place to add things like “authenticatedPage” or “hubHomePage” if we want every test in a suite to receive a pre-navigated page object.
+**Fixtures** are a way to inject shared setup into tests. The framework has a custom fixture in `src/fixtures/test.fixture.ts` that extends Playwright's default `test` and injects page objects:
+
+- **`homePage`** — A `HomePage` instance, ready to use. Tests destructure it: `async ({ homePage }) => { ... }`.
+- To add more page objects (e.g. `loginPage`, `dashboardPage`), add them to the `Fixtures` type and the `extend` block in `test.fixture.ts`.
+
+**All test files must import `test` and `expect` from `src/fixtures/test.fixture`**, not from `@playwright/test`. This ensures every test receives the injected fixtures.
 
 **beforeEach / afterEach** are lifecycle hooks that run before or after each test in a `test.describe` block. We use **beforeEach** in the CRDC suite to go to the hub and dismiss the warning so tests start from a consistent state.
 
