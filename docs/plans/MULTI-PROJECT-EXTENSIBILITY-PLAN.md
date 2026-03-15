@@ -22,15 +22,15 @@ No need to create separate repos per project; this repo becomes the central test
 ### What works today
 
 - **Playwright projects** — One project (`crdc-homepage`) already defines baseURL, testMatch, and timeout. Playwright supports many projects; selection is via `--project=name`.
-- **Environments** — `TEST_ENV` (prod, qa, stage, qa2) plus `getCrdcBaseURL()` provide multi-env for a single app.
-- **Layout** — `tests/ui/`, `tests/smoke/`, `tests/integration/`, page objects, and fixtures can accommodate more specs and apps.
+- **Environments** — `TEST_ENV` (prod, qa, stage, qa2) plus `getBaseURL(project)` provide multi-env per app.
+- **Layout** — Option B: `tests/crdc/`, `tests/sts/`, plus `tests/smoke/`, `tests/integration/`; page objects in `src/pages/`; minimal shared fixture.
 - **Scripts** — `npm run test:crdc` runs one project; the pattern can be repeated for other projects.
 
 ### What is limiting
 
 | Area | Current behavior | Limitation |
 |------|------------------|------------|
-| **Config** | `config/env/urls.ts` exposes only `getCrdcBaseURL()`. No concept of “which app.” | Cannot resolve base URL (or other config) per project/app. |
+| **Config** | Resolved: `config/env/urls.ts` re-exports `getBaseURL(project)` from `config/apps.ts`; all projects use it. | — |
 | **Default baseURL** | Global `use.baseURL` in `playwright.config.ts` is CRDC. | With multiple apps, default should depend on which project (or app) is running. |
 | **Env vars** | Only `TEST_ENV` and `BASE_URL`. | Need a way to select app/project (e.g. `PROJECT` or `APP`) when resolving URLs. |
 | **Fixtures** | Single shared fixture with `homePage` (CRDC). | Other apps may need different page objects; design choice: add more fixtures per app vs. minimal fixture and construct POMs in specs. |
@@ -84,23 +84,20 @@ Resolution order: if `BASE_URL` is set, use it; else use the URL for `PROJECT` +
 
 - **Default / shared projects** — Optional: keep `chromium`, `firefox`, `webkit` for generic runs; their baseURL could come from `getBaseURL(process.env.PROJECT)` so they run against the selected app.
 - **Per-app projects** — For each automatable app, define one or more projects, e.g.:
-  - `crdc-homepage` — testMatch: `crdc-homepage.spec.ts`, baseURL: `getBaseURL('crdc')`
+  - `crdc-homepage` — testMatch: `/crdc\/.*\.spec\.ts/`, baseURL: `getBaseURL('crdc')`
   - `crdc-smoke` — testMatch: smoke specs that target CRDC, baseURL: `getBaseURL('crdc')`
   - `project-b-regression` — testMatch: `tests/project-b/**/*.spec.ts` (or similar), baseURL: `getBaseURL('project-b')`
 
 Each project’s baseURL is resolved at config load time using current env vars, so `PROJECT` and `TEST_ENV` (and optional `BASE_URL`) control where tests run.
 
-### 3.5 Test and source layout (proposed)
+### 3.5 Test and source layout — **Option B (adopted)**
 
-- **Option A (current-style)** — Keep all specs under `tests/ui/`, `tests/smoke/`, `tests/integration/` and distinguish by file/dir naming (e.g. `crdc-homepage.spec.ts`, `project-b-dashboard.spec.ts`). Playwright projects use `testMatch` to include the right files.
-- **Option B (per-app dirs)** — Add subdirs per app, e.g. `tests/crdc/`, `tests/project-b/`. Each Playwright project uses `testDir` + `testMatch` or just `testMatch` with a path pattern. Eases organization when many projects exist.
+- **Option B (per-app dirs)** — App specs live under per-app dirs: `tests/crdc/`, `tests/sts/`, etc. Each Playwright project uses `testMatch` with a path pattern (e.g. `/crdc\/.*\.spec\.ts/`, `/sts\/.*\.spec\.ts/`). Shared suites remain at top level: `tests/smoke/`, `tests/integration/`.
+- **Option A (deprecated)** — Previously all specs were under `tests/ui/` with file naming; we moved to Option B for clearer organization.
 
-Choose one convention and document it; both are compatible with the config model above.
+### 3.6 Fixtures — **Option B (adopted)**
 
-### 3.6 Fixtures (proposed)
-
-- **Option A** — Extend the shared fixture with more page objects as apps are added (e.g. `homePage`, `projectBDashboardPage`). Simple but can become a long list if there are many apps.
-- **Option B (recommended for many projects)** — Keep the shared fixture minimal (e.g. only CRDC’s `homePage` or a small set of shared pages). For other apps, specs in that app’s suite construct their own page objects and rely on `page` and the project’s `baseURL`. No need to register every app in the fixture.
+- **Option B** — Shared fixture stays minimal: only CRDC’s `homePage` (and any shared pages) is injected. Other apps (e.g. STS) construct their own page objects in specs and rely on `page` and the project’s `baseURL`. No need to register every app in the fixture.
 
 ---
 
@@ -111,7 +108,7 @@ Choose one convention and document it; both are compatible with the config model
 | Item | Current | Change / addition |
 |------|---------|-------------------|
 | **App/env URL map** | Only CRDC in `config/env/urls.ts` | Add a central map (e.g. in `config/apps.ts` or `config/apps/index.ts`) that defines, per app, env names and base URLs. Migrate CRDC URLs into this map. |
-| **URL resolver** | `getCrdcBaseURL()` in `config/env/urls.ts` | Add `getBaseURL(project?: string): string` that uses `PROJECT` (or argument), `TEST_ENV`, and `BASE_URL`. Keep or deprecate `getCrdcBaseURL()` (e.g. thin wrapper that calls `getBaseURL('crdc')`). |
+| **URL resolver** | Done: single `getBaseURL(project?: string)` in `config/apps.ts`; `urls.ts` re-exports it. No `getCrdcBaseURL`; use `getBaseURL('crdc')`, `getBaseURL('sts')`, etc. | — |
 | **Env types** | `EnvConfig` in `config/env/types.ts` | Optionally extend or add an “app config” type (e.g. per-app env list, optional apiBaseURL, timeouts). Not strictly required for first phase. |
 | **Constants** | `DEFAULT_ENV` in `config/constants.ts` | Add `DEFAULT_PROJECT` (e.g. `'crdc'`) and use it when `PROJECT` is unset. |
 
@@ -119,9 +116,9 @@ Choose one convention and document it; both are compatible with the config model
 
 | Item | Current | Change / addition |
 |------|---------|-------------------|
-| **Default baseURL** | `getCrdcBaseURL()` | Use `getBaseURL()` (no arg or `process.env.PROJECT`) so the default follows the selected project. |
-| **CRDC project** | `crdc-homepage` with `getCrdcBaseURL()` | Switch to `getBaseURL('crdc')` (or keep `getCrdcBaseURL()` as a wrapper). |
-| **New projects** | N/A | For each new app, add one or more projects with appropriate `name`, `testMatch` (and optionally `testDir`), `baseURL: getBaseURL('app-id')`, and timeouts/settings. |
+| **Default baseURL** | Done: `getBaseURL()` (no arg; uses PROJECT + TEST_ENV). | — |
+| **CRDC project** | Done: `crdc-homepage` with `baseURL: getBaseURL('crdc')`, `testMatch: /crdc\/.*\.spec\.ts/`. | — |
+| **New projects** | N/A | For each new app, add one or more projects with `name`, `testMatch` (e.g. `/sts\/.*\.spec\.ts/`), `baseURL: getBaseURL('app-id')`, and timeouts/settings. |
 | **Docs comment** | Inline | Brief comment that baseURL is resolved from PROJECT + TEST_ENV via `getBaseURL()`. |
 
 ### 4.3 Fixtures
@@ -134,7 +131,7 @@ Choose one convention and document it; both are compatible with the config model
 
 | Item | Current | Change / addition |
 |------|---------|-------------------|
-| **Layout** | `tests/ui/crdc-homepage.spec.ts`, etc. | Either keep naming convention (e.g. `project-b-*.spec.ts`) or add `tests/<app>/` dirs. Document convention. |
+| **Layout** | Done: Option B — `tests/crdc/`, `tests/sts/`; testMatch per app (e.g. `/crdc\/.*\.spec\.ts/`). | — |
 | **New apps** | N/A | For each new app: add specs (and optionally page objects under `src/pages/` or `src/pages/<app>/`), and a Playwright project that matches those specs and uses `getBaseURL('<app>')`. |
 
 ### 4.5 Scripts and CLI
@@ -161,7 +158,7 @@ Choose one convention and document it; both are compatible with the config model
 
 **Phase 1 — Config and resolver (no new apps yet)**  
 - Add central app/env URL map; move CRDC URLs into it.  
-- Add `getBaseURL(project?: string)` and `DEFAULT_PROJECT`; keep `getCrdcBaseURL()` as wrapper.  
+- Done: `getBaseURL(project?: string)` and `DEFAULT_PROJECT` in place; no `getCrdcBaseURL` — use `getBaseURL('crdc')` etc.  
 - Update `playwright.config.ts` to use `getBaseURL()` for default and for `crdc-homepage`.  
 - Update `.env.example` and RUNNING-TESTS.md with `PROJECT`.  
 - No change to existing tests or fixtures.
@@ -195,7 +192,7 @@ Use this when the team adds support for a new application.
    - [ ] Add one or more projects in `playwright.config.ts` with `name`, `baseURL: getBaseURL('app-id')`, `testMatch` (and optionally `testDir`), and any timeout/settings.
 
 3. **Tests**  
-   - [ ] Add specs (and optionally page objects) following the chosen layout and naming convention.
+   - [ ] Create `tests/<app>/` (e.g. `tests/myapp/`) and add specs there. Add page objects in `src/pages/` as needed. Use `testMatch: /<app>\/.*\.spec\.ts/` in the new Playwright project.
 
 4. **Scripts**  
    - [ ] Add npm scripts (e.g. `test:<app>`, `test:<app>:headed`) in `package.json` that run the new project(s).
@@ -203,8 +200,8 @@ Use this when the team adds support for a new application.
 5. **Docs**  
    - [ ] Update RUNNING-TESTS.md (and optionally FRAMEWORK-ONBOARDING and PROJECT-STRUCTURE) with the new project and how to run it.
 
-6. **Fixtures (if using shared fixture)**  
-   - [ ] If the team chose Option A for fixtures, add the new app’s page object(s) to the fixture type and extend block.
+6. **Fixtures (Option B)**  
+   - [ ] Do not add the new app to the shared fixture. In the app’s specs, construct the page object from `page` (e.g. `new MyAppPage(page)`). Only add to the fixture if the page is shared across multiple projects.
 
 ---
 

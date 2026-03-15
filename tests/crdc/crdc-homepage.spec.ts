@@ -7,7 +7,7 @@
  * so tests run against the main content.
  */
 import { test, expect } from '../../src/fixtures/test.fixture';
-import { getCrdcBaseURL } from '../../config/env/urls';
+import { getBaseURL } from '../../config/env/urls';
 import { HomePage } from '../../src/pages/home.page';
 
 test.describe('CRDC Hub Homepage', () => {
@@ -91,7 +91,7 @@ test.describe('CRDC Hub Homepage', () => {
   test('should show system use warning dialog before continuing', async ({
     browser,
   }) => {
-    const context = await browser.newContext({ baseURL: getCrdcBaseURL() });
+    const context = await browser.newContext({ baseURL: getBaseURL('crdc') });
     const page = await context.newPage();
     try {
       await page.goto('/', { waitUntil: 'domcontentloaded' });

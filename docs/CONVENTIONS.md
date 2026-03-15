@@ -35,7 +35,7 @@ Naming, POM rules, locator strategy, and where test data and secrets live.
 ## Fixture usage
 
 - All test files must import `test` and `expect` from `src/fixtures/test.fixture.ts`, **not** from `@playwright/test` directly.
-- Page objects are injected via fixtures (e.g. `homePage`), not constructed manually in each test.
+- Page objects are injected via fixtures when available (e.g. `homePage` for CRDC). For other apps (Option B) specs construct the page object from `page` (e.g. `new StsHomePage(page)`).
 - Tests that need a fresh browser context (e.g. to test dialog appearance) may construct page objects manually in that context.
 
 ## Test data and secrets
@@ -54,7 +54,7 @@ Naming, POM rules, locator strategy, and where test data and secrets live.
 - Use `test.describe` block names to group tests by feature area.
 - Tag tests with the `tag` option (tags must start with `@`), e.g. `test('title', { tag: ['@regression', '@CRDCDH-1234'] }, async ({ page }) => { ... })`. Run by tag with `npx playwright test --grep @regression` or `--grep @CRDCDH-1234`; use `--grep-invert` to exclude tags.
 - When possible, include a requirement or story reference in the test description comment.
-- Smoke tests go in `tests/smoke/`; feature tests in `tests/ui/`; end-to-end flows in `tests/integration/`.
+- Smoke tests go in `tests/smoke/`; app-specific UI tests in `tests/crdc/`, `tests/sts/` (Option B per-app layout); end-to-end flows in `tests/integration/`.
 
 ## Logging
 

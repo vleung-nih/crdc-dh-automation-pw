@@ -33,7 +33,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: getBaseURL('crdc'),
       },
-      testMatch: /crdc-homepage\.spec\.ts/,
+      testMatch: /crdc\/.*\.spec\.ts/,
       timeout: 60_000,
     },
     {
@@ -42,7 +42,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: getBaseURL('sts'),
       },
-      testMatch: /sts-homepage\.spec\.ts/,
+      testMatch: /sts\/.*\.spec\.ts/,
       timeout: 60_000,
     },
   ],

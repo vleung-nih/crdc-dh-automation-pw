@@ -12,10 +12,10 @@ crdc-dh-automation-pw/
 ├── config/
 │   ├── apps.ts                             # App/env → URL map; getBaseURL(project)
 │   ├── constants.ts                        # Timeouts, DEFAULT_PROJECT, DEFAULT_ENV
-│   └── env/                                # Env types, getBaseURL/getCrdcBaseURL
+│   └── env/                                # Env types, getBaseURL(project)
 │       ├── index.ts                        # Env name resolver and re-exports
 │       ├── types.ts                        # EnvConfig type definition
-│       └── urls.ts                         # getCrdcBaseURL, getBaseURL re-export
+│       └── urls.ts                         # getBaseURL re-export from apps
 ├── src/
 │   ├── pages/                              # Page Object Model classes
 │   │   ├── base.page.ts                    # Base class for all pages
@@ -31,12 +31,14 @@ crdc-dh-automation-pw/
 │   │   └── static/                         # JSON/CSV test data (no secrets)
 │   └── hooks/                              # Global setup/teardown
 ├── tests/
-│   ├── ui/                                 # UI tests by feature
-│   │   ├── crdc-homepage.spec.ts           # CRDC Hub homepage tests
-│   │   └── sts-homepage.spec.ts            # STS homepage stub tests
-│   ├── smoke/                              # Critical path smoke tests
+│   ├── crdc/                               # CRDC Submission Portal specs (Option B: per-app)
+│   │   └── crdc-homepage.spec.ts          # Homepage tests
+│   ├── sts/                                # STS specs (Option B: per-app)
+│   │   └── sts-homepage.spec.ts           # Homepage stub tests
+│   ├── smoke/                              # Critical path smoke (default baseURL)
 │   │   └── smoke.spec.ts                   # Health check suite
-│   └── integration/                        # Cross-layer / E2E
+│   ├── integration/                        # Cross-layer / E2E
+│   └── ui/                                 # Legacy; see README — app specs in crdc/, sts/
 ├── reports/                                # Generated reports (gitignored)
 ├── scripts/                                # CI helper scripts
 │   ├── run-smoke.sh                        # Smoke suite runner
@@ -69,7 +71,8 @@ crdc-dh-automation-pw/
 | **src/utils/** | Logger, retries, file I/O. |
 | **src/fixtures/** | Playwright fixtures (e.g. `homePage`) and static data files. All tests import `test` from here. |
 | **src/hooks/** | Global before/after, custom reporters. |
-| **tests/ui/** | UI test specs organized by feature. |
-| **tests/smoke/** | Fast critical-path suite; run on every commit. |
+| **tests/crdc/** | CRDC Submission Portal UI specs (Option B: per-app). |
+| **tests/sts/** | STS UI specs (Option B: per-app). |
+| **tests/smoke/** | Fast critical-path suite; run on every commit; uses default baseURL. |
 | **tests/integration/** | Cross-layer or E2E flows. |
 | **scripts/** | `run-smoke.sh`, `run-regression.sh` for CI. |

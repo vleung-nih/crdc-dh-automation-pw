@@ -52,7 +52,7 @@ To run the homepage tests against the CRDC Submission Portal:
 npm run test:crdc
 ```
 
-This uses the `crdc-homepage` project, which sets `baseURL` to `https://hub.datacommons.cancer.gov` and runs only `tests/ui/crdc-homepage.spec.ts`. By default tests run **headless**. To watch the browser:
+This uses the `crdc-homepage` project, which sets `baseURL` to the CRDC hub and runs all specs in `tests/crdc/`. By default tests run **headless**. To watch the browser:
 
 ```bash
 npm run test:crdc:headed
@@ -65,7 +65,7 @@ npx playwright test --project=crdc-homepage
 npx playwright test --project=crdc-homepage --headed
 ```
 
-Or run with a custom base URL: `BASE_URL=https://hub.datacommons.cancer.gov npx playwright test tests/ui/crdc-homepage.spec.ts`
+Or run with a custom base URL: `BASE_URL=https://hub.datacommons.cancer.gov npx playwright test tests/crdc/`
 
 ## STS Homepage (stub tests)
 
@@ -77,7 +77,7 @@ npm run test:sts
 npm run test:sts:headed
 ```
 
-Use `PROJECT=sts` and `TEST_ENV` (prod, qa, stage) to target the desired STS environment. STS has no qa2. Update `tests/ui/sts-homepage.spec.ts` and `src/pages/sts-home.page.ts` when the real page is available.
+Use `PROJECT=sts` and `TEST_ENV` (prod, qa, stage) to target the desired STS environment. STS has no qa2. Update `tests/sts/` specs and `src/pages/sts-home.page.ts` when the real page is available.
 
 ## Run by project (browser)
 
@@ -114,7 +114,7 @@ npx playwright test --grep-invert @slow
 
 ## Smoke tests
 
-`npm run test:smoke` runs the suite in `tests/smoke/`. Those tests use the **default project** and thus the **default baseURL** from config (from `getCrdcBaseURL()`, i.e. the CRDC hub for the current `TEST_ENV`). When the framework supports multiple projects, smoke still runs against whatever is the default baseURL unless you run a specific project; document any project-specific smoke in the multi-project plan.
+`npm run test:smoke` runs the suite in `tests/smoke/`. Those tests use the **default project** and thus the **default baseURL** from config (`getBaseURL()` with no arg, i.e. the app for current `PROJECT` and `TEST_ENV`). With multiple projects, smoke runs against that default baseURL unless you run a specific project; see the multi-project plan for project-specific smoke.
 
 ## Viewing results
 
