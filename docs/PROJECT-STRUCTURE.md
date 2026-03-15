@@ -10,15 +10,19 @@ crdc-dh-automation-pw/
 │   └── workflows/
 │       └── ci.yml                          # GitHub Actions CI/CD pipeline
 ├── config/
-│   ├── env/                                # Environment-specific config (TEST_ENV)
-│   │   ├── index.ts                        # Env name resolver and re-exports
-│   │   ├── types.ts                        # EnvConfig type definition
-│   │   └── urls.ts                         # Sync base URL resolver by TEST_ENV
-│   └── constants.ts                        # Timeouts, no magic numbers
+│   ├── apps.ts                             # App/env → URL map; getBaseURL(project)
+│   ├── constants.ts                        # Timeouts, DEFAULT_PROJECT, DEFAULT_ENV
+│   └── env/                                # Env types, getBaseURL(project)
+│       ├── index.ts                        # Env name resolver and re-exports
+│       ├── types.ts                        # EnvConfig type definition
+│       └── urls.ts                         # getBaseURL re-export from apps
 ├── src/
 │   ├── pages/                              # Page Object Model classes
-│   │   ├── base.page.ts                    # Base class for all pages
-│   │   └── home.page.ts                    # CRDC Hub homepage
+│   │   ├── base.page.ts                    # Base class for all pages (shared)
+│   │   ├── crdc/                           # CRDC app page objects
+│   │   │   └── home.page.ts                # CRDC Hub homepage
+│   │   └── sts/                            # STS app page objects
+│   │       └── sts-home.page.ts            # STS homepage (stub)
 │   ├── components/                         # Reusable UI components (modals, nav)
 │   ├── api/                                # API client wrappers (optional)
 │   ├── data/                               # Test data factories, builders
@@ -29,11 +33,12 @@ crdc-dh-automation-pw/
 │   │   └── static/                         # JSON/CSV test data (no secrets)
 │   └── hooks/                              # Global setup/teardown
 ├── tests/
-│   ├── ui/                                 # UI tests by feature
-│   │   └── crdc-homepage.spec.ts           # CRDC Hub homepage tests
-│   ├── smoke/                              # Critical path smoke tests
-│   │   └── smoke.spec.ts                   # Health check suite
-│   └── integration/                        # Cross-layer / E2E
+│   ├── crdc/                               # CRDC Submission Portal specs (Option B: per-app)
+│   │   └── crdc-homepage.spec.ts          # Homepage tests
+│   ├── sts/                                # STS specs (Option B: per-app)
+│   │   └── sts-homepage.spec.ts           # Homepage stub tests
+│   └── smoke/                              # Critical path smoke (default baseURL)
+│       └── smoke.spec.ts                   # Health check suite
 ├── reports/                                # Generated reports (gitignored)
 ├── scripts/                                # CI helper scripts
 │   ├── run-smoke.sh                        # Smoke suite runner
@@ -59,14 +64,14 @@ crdc-dh-automation-pw/
 | **config/** | All environment-specific values and timeouts. No env branching inside tests; use config injection. |
 | **config/constants.ts** | `ELEMENT_TIMEOUT`, `NAVIGATION_TIMEOUT`, etc. Single source for timeouts. |
 | **config/env/** | Base URL resolver and env config type. Loaded by `TEST_ENV`. |
-| **src/pages/** | One class per page; locators and interactions only; no assertions. |
+| **src/pages/** | One class per page; locators and interactions only; no assertions. App-specific pages live under `src/pages/<app>/` (e.g. `crdc/`, `sts/`); shared base at `src/pages/base.page.ts`. |
 | **src/components/** | Reusable UI fragments (header, modals) composed by pages. |
 | **src/api/** | Typed API clients for setup, teardown, or API-layer assertions. |
 | **src/data/** | Test data builders, factories, and constants. |
 | **src/utils/** | Logger, retries, file I/O. |
 | **src/fixtures/** | Playwright fixtures (e.g. `homePage`) and static data files. All tests import `test` from here. |
 | **src/hooks/** | Global before/after, custom reporters. |
-| **tests/ui/** | UI test specs organized by feature. |
-| **tests/smoke/** | Fast critical-path suite; run on every commit. |
-| **tests/integration/** | Cross-layer or E2E flows. |
+| **tests/crdc/** | CRDC Submission Portal UI specs (Option B: per-app). |
+| **tests/sts/** | STS UI specs (Option B: per-app). |
+| **tests/smoke/** | Fast critical-path suite; run on every commit; uses default baseURL. E2E flows live under `tests/crdc/` or `tests/sts/` (same app dir as page-level specs). |
 | **scripts/** | `run-smoke.sh`, `run-regression.sh` for CI. |

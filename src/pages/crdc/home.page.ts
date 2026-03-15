@@ -1,5 +1,5 @@
-import { BasePage } from './base.page';
-import { logger } from '../utils/logger';
+import { BasePage } from '../base.page';
+import { logger } from '../../utils/logger';
 
 /**
  * Page object for the CRDC Submission Portal homepage (hub.datacommons.cancer.gov).

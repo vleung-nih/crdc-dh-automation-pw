@@ -20,7 +20,7 @@ When you run `npm run test:crdc`:
 
 1. **Playwright** reads `playwright.config.ts` and sees which tests to run and which **project** (e.g. `crdc-homepage`) to use. The project defines things like which browser and **base URL** (e.g. `https://hub.datacommons.cancer.gov`).
 
-2. For each test file (e.g. `tests/ui/crdc-homepage.spec.ts`), Playwright reads the test suite. Instead of tests manually creating page objects, they rely on **fixtures**. When a test runs, the fixture automatically builds the necessary page object (e.g., `homePage`) and injects it. Before each test, Playwright runs the **beforeEach** hook if the suite defines one (e.g. uses the injected page to go to the homepage and dismiss the warning dialog).
+2. For each test file (e.g. `tests/crdc/crdc-homepage.spec.ts`), Playwright reads the test suite. Instead of tests manually creating page objects, they rely on **fixtures**. When a test runs, the fixture automatically builds the necessary page object (e.g., `homePage`) and injects it. Before each test, Playwright runs the **beforeEach** hook if the suite defines one (e.g. uses the injected page to go to the homepage and dismiss the warning dialog).
 
 3. The test uses the injected **page object** (e.g. `homePage`). The page object knows how to find elements (links, buttons, dialogs) and how to perform actions (navigate, click Continue). The test itself only calls those methods and then **asserts** (e.g. “this heading should be visible”, “the URL should match auth.nih.gov”).
 
@@ -42,7 +42,8 @@ playwright-framework-vl/
 │   ├── fixtures/    # Shared test setup (e.g. custom fixtures)
 │   └── utils/       # Helpers (logging, etc.)
 ├── tests/
-│   ├── ui/          # UI test specs by feature (e.g. crdc-homepage.spec.ts)
+│   ├── crdc/        # CRDC specs (Option B: per-app)
+│   ├── sts/         # STS specs (Option B: per-app)
 │   ├── smoke/       # Short critical-path suite for quick checks
 │   └── integration/ # Cross-feature or E2E flows
 ├── scripts/         # Shell scripts for CI (e.g. run smoke only)
@@ -54,8 +55,8 @@ playwright-framework-vl/
 
 **Why separate these?**
 
-- **Config in one place:** So we can change timeouts or the base URL without searching through tests. It also lets us support multiple environments (prod, qa, stage, qa2) by switching `TEST_ENV` or the Playwright project.
-- **Page objects in `src/pages`:** So all locators and UI actions for a given page live in one class. If a button’s text or test id changes, we update the page object once and all tests that use it stay valid.
+- **Config in one place:** So we can change timeouts or the base URL without searching through tests. Multiple apps and environments are supported via `PROJECT`, `TEST_ENV`, and `getBaseURL(project)` (see `config/apps.ts`); switch env or Playwright project to run against different targets.
+- **Page objects in `src/pages/`:** App-specific pages live under `src/pages/<app>/` (e.g. `crdc/`, `sts/`); shared base at `src/pages/base.page.ts`. So all locators and UI actions for a given page live in one class. If a button’s text or test id changes, we update the page object once and all tests that use it stay valid.
 - **Tests in `tests/`:** So test logic (what to do and what to expect) stays in spec files, and we don’t put assertions inside page objects. That keeps responsibilities clear: pages “do” things, tests “check” outcomes.
 - **Scripts in `scripts/`:** So CI or developers can run a standard set of commands (e.g. smoke only) without remembering long `npx playwright test ...` invocations.
 
@@ -73,9 +74,9 @@ All timeouts are defined in one file so we never scatter “magic numbers” (e.
 
 `playwright.config.ts` imports these and sets `actionTimeout` and `navigationTimeout`. If a step takes longer than the configured time, the test fails with a clear timeout instead of hanging.
 
-### 4.2 Environments (`config/env/`)
+### 4.2 Environments and base URL (`config/apps.ts`, `config/env/urls.ts`)
 
-Different environments have different **base URLs**. The file `config/env/urls.ts` acts as the single source of truth, mapping `TEST_ENV` strings to URL strings. The resolver uses the `TEST_ENV` variable (or a default) to instantly return the correct URL for the Playwright Config to use. Available profiles include:
+Different apps and environments have different **base URLs**. The file `config/apps.ts` defines the app/env → URL map; `getBaseURL(project)` (re-exported from `config/env/urls.ts`) resolves the URL using `PROJECT`, `TEST_ENV`, and optional `BASE_URL` override. Playwright config and projects call `getBaseURL()` or `getBaseURL('crdc')`, `getBaseURL('sts')`, etc. For CRDC, available envs include:
 
 - **prod** — CRDC hub production: `https://hub.datacommons.cancer.gov` (default).
 - **qa** — CRDC hub QA: `https://hub-qa.datacommons.cancer.gov`.
@@ -88,10 +89,10 @@ Tests don’t branch on “if staging do X”; they just use the injected base U
 
 A **project** is a named configuration: which browser, which base URL, which test files, and optionally a custom timeout. For example:
 
-- **chromium / firefox / webkit:** Default projects that run all tests with the default base URL (from `process.env.BASE_URL` or a fallback).
-- **crdc-homepage:** Uses Chrome and a fixed base URL for the CRDC hub, and only runs tests matching `crdc-homepage.spec.ts`. It also sets a longer test timeout so heavy pages have time to load.
+- **chromium / firefox / webkit:** Default projects that run all tests with the default base URL from `getBaseURL()` (i.e. PROJECT + TEST_ENV, or BASE_URL override).
+- **crdc-homepage:** Uses Chrome and a fixed base URL for the CRDC hub, and runs all specs in `tests/crdc/` (testMatch: `/crdc\/.*\.spec\.ts/`). It also sets a longer test timeout so heavy pages have time to load.
 
-So when you run `npm run test:crdc`, you’re running the `crdc-home` project: same tests, but with the CRDC base URL and timeout applied.
+So when you run `npm run test:crdc`, you’re running the `crdc-homepage` project: all specs in `tests/crdc/`, with the CRDC base URL and timeout applied.
 
 ---
 
@@ -113,7 +114,7 @@ Instead of putting long selectors and repeated “click this, then that” logic
 
 All page classes extend `BasePage`. The base class receives the Playwright `page` and provides a shared `goto(path, options)` method so we can navigate with a consistent pattern (e.g. optional `waitUntil: 'domcontentloaded'` for heavy pages). New pages add their own locators and methods on top of this.
 
-**Example: `HomePage` (`src/pages/home.page.ts`):**
+**Example: `HomePage` (`src/pages/crdc/home.page.ts`):**
 
 - Defines locators for the CRDC hub homepage: government banner, nav links, main heading, Log In link, footer sections, system use warning dialog (by `data-testid`), and Continue button.
 - Methods: `gotoHome()`, `dismissSystemUseWarning()`, `ensureSystemUseWarningDismissed()`.
@@ -125,7 +126,7 @@ When the CRDC UI changes (e.g. a new test id or label), we update `HomePage` in 
 
 ## 6. Tests: what they do and how they’re written
 
-Test files live under `tests/`: `tests/ui/` for feature-focused UI tests, `tests/smoke/` for a small critical-path suite.
+Test files live under `tests/`: `tests/crdc/` and `tests/sts/` for per-app UI specs (Option B), `tests/smoke/` for a small critical-path suite.
 
 **Structure of a typical spec file:**
 
@@ -183,8 +184,9 @@ One test (“should show system use warning dialog before continuing”) needs t
 
 Environment variables that matter:
 
-- `BASE_URL` — overrides the base URL used by the default Playwright project.
-- `TEST_ENV` — selects which env config to load (`prod`, `qa`, `stage`, `qa2`).
+- `PROJECT` — which app to run (`crdc`, `sts`). Default baseURL and smoke use this; see `config/apps.ts`.
+- `TEST_ENV` — which environment for that app (`prod`, `qa`, `stage`, `qa2` for crdc; sts has no qa2).
+- `BASE_URL` — overrides the base URL for the run (overrides PROJECT + TEST_ENV).
 - `CI` — when set (e.g. in CI), Playwright can enable retries and use fewer workers.
 
 Copy `.env.example` to `.env` and set values as needed; don’t commit `.env`.
@@ -197,13 +199,13 @@ More detail: see **docs/RUNNING-TESTS.md**.
 
 **Adding a new test to an existing suite (e.g. CRDC homepage):**
 
-1. Open the spec file (e.g. `tests/ui/crdc-homepage.spec.ts`).
+1. Open the spec file (e.g. `tests/crdc/crdc-homepage.spec.ts`).
 2. Add a short comment above the test describing what it verifies.
 3. Add a `test('should ...', async ({ homePage }) => { ... })` that uses the injected page object (`homePage`) to perform actions and `expect(...)` to assert. Reuse existing getters/methods where possible; if you need a new element, add a locator and optionally a getter in the page object first.
 
 **Adding a new page (e.g. Login page):**
 
-1. Create a new class in `src/pages/` that extends `BasePage` (e.g. `login.page.ts` with `LoginPage`).
+1. Create a new class in `src/pages/<app>/` that extends `BasePage` (e.g. `src/pages/crdc/login.page.ts` with `LoginPage`).
 2. Define locators (private/readonly) at the top, using `getByRole`, `getByTestId`, or `getByText` as appropriate.
 3. Add methods for actions (e.g. `enterEmail`, `clickSubmit`) and getters for elements the test will assert on. No `expect` inside the page object.
 4. Update `src/fixtures/test.fixture.ts` to add your new `loginPage` to the `Fixtures` type and `extend` block.
@@ -211,17 +213,17 @@ More detail: see **docs/RUNNING-TESTS.md**.
 
 **Adding a new suite (e.g. a new feature area):**
 
-1. Add a new spec file under `tests/ui/` (e.g. `login.spec.ts`).
+1. Add a new spec file under the app’s dir (Option B): for CRDC use `tests/crdc/` (e.g. `tests/crdc/login.spec.ts`); for another app use `tests/<app>/`. See **docs/plans/MULTI-PROJECT-EXTENSIBILITY-PLAN.md** for adding a new app.
 2. Use `test.describe` and, if needed, `beforeEach` to set up a shared state (e.g. navigate to login page).
-3. If the app has multiple environments, you can add a new project in `playwright.config.ts` (like `crdc-homepage`) that sets `baseURL` and `testMatch` for that suite.
+3. If the suite needs its own Playwright project (e.g. different baseURL or testMatch), add a project in `playwright.config.ts` (like `crdc-homepage`) with `baseURL: getBaseURL('crdc')` and `testMatch: /crdc\/.*\.spec\.ts/`.
 
 ---
 
 ## 10. Summary and where to read more
 
 - **Config** (`config/`) centralizes timeouts and environments so tests stay environment-agnostic.
-- **Page objects** (`src/pages/`) hold locators and actions per page; tests only orchestrate and assert.
-- **Tests** (`tests/`) are organized by feature (ui, smoke, integration) and use clear names and comments.
+- **Page objects** (`src/pages/<app>/`, shared `base.page.ts`) hold locators and actions per page; tests only orchestrate and assert.
+- **Tests** (`tests/`) are organized by app and suite (crdc, sts, smoke, integration; Option B per-app dirs) and use clear names and comments.
 - **Playwright config** defines projects (browsers, base URL, which tests) and applies constants for timeouts and reporting.
 
 **Other docs in this repo:**
