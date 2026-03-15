@@ -33,7 +33,8 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: getBaseURL('crdc'),
       },
-      testMatch: /crdc\/.*\.spec\.ts/,
+      // Require /crdc/ as path segment so "tests/crdc/..." matches, not "tests/..."
+      testMatch: /\/crdc\/.*\.spec\.ts$/,
       timeout: 60_000,
     },
     {
@@ -42,7 +43,8 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: getBaseURL('sts'),
       },
-      testMatch: /sts\/.*\.spec\.ts/,
+      // Require /sts/ as path segment so only tests/sts/ matches (not "sts" in "tests")
+      testMatch: /\/sts\/.*\.spec\.ts$/,
       timeout: 60_000,
     },
   ],

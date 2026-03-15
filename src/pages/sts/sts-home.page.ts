@@ -3,15 +3,14 @@ import { logger } from '../../utils/logger';
 
 /**
  * Page object for the STS (https://sts.cancer.gov) homepage.
- * Stub locators — update when the actual page structure is available.
  * No assertions here; tests assert.
  */
 export class StsHomePage extends BasePage {
-  /** Main content area — adjust selector when STS page is available. */
-  private readonly mainContent = this.page.getByRole('main');
+  /** Main content area  */
+  private readonly mainContent = this.page.locator('xpath=//*[@id="aboutTabContent"]');
 
-  /** Primary heading — stub; replace with actual STS heading when known. */
-  private readonly mainHeading = this.page.getByRole('heading', { level: 1 }).first();
+  /** Primary heading */
+  private readonly mainHeading = this.page.getByText('Simple Terminology Service (STS)');
 
   /**
    * Navigate to the STS homepage (root path).
