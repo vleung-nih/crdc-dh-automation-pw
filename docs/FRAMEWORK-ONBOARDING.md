@@ -206,10 +206,32 @@ More detail: see **docs/RUNNING-TESTS.md**.
 **Adding a new page (e.g. Login page):**
 
 1. Create a new class in `src/pages/<app>/` that extends `BasePage` (e.g. `src/pages/crdc/login.page.ts` with `LoginPage`).
-2. Define locators (private/readonly) at the top, using `getByRole`, `getByTestId`, or `getByText` as appropriate.
+2. Define locators (private/readonly) at the top. See **Playwright locators** below for which locator type to use.
 3. Add methods for actions (e.g. `enterEmail`, `clickSubmit`) and getters for elements the test will assert on. No `expect` inside the page object.
 4. Update `src/fixtures/test.fixture.ts` to add your new `loginPage` to the `Fixtures` type and `extend` block.
 5. In the spec, just destructure your new fixture: `async ({ loginPage }) => { ... }` and call its methods and getters.
+
+**Playwright locators**
+
+Playwright supports multiple ways to find elements. Unlike Selenium’s single `findElement(By.xpath(...))` style, Playwright offers **role-based**, **test-id**, **ID**, **CSS**, and **XPath** locators. Prefer the first three when possible; they tend to be more stable and accessible.
+
+| Type | Playwright API | Example | When to use |
+|------|----------------|---------|-------------|
+| **Role** | `page.getByRole(role, options?)` | `getByRole('button', { name: 'Submit' })` | Buttons, links, headings, form fields, landmarks. Best default; matches how users and assistive tech see the page. |
+| **Label** | `page.getByLabel(text)` | `getByLabel('Email')` | Inputs that have a associated `<label>`. |
+| **Text** | `page.getByText(text)` | `getByText('Welcome')` | Any visible text. Use when the content is stable. |
+| **Title** | `page.getByTitle(text)` | `getByTitle('Tooltip')` | Elements with a `title` attribute. |
+| **Test ID** | `page.getByTestId(id)` | `getByTestId('submit-button')` | Elements with `data-testid="submit-button"`. Use when you control the app and can add test IDs. Very stable. |
+| **ID** | `page.locator('#id')` | `locator('#login-form')` | Elements with a stable `id`. No dedicated `getById()`; use CSS `#id` via `locator()`. |
+| **CSS** | `page.locator('selector')` | `locator('button.primary')`, `locator('body > div')` | Class, structure, or any attribute. Flexible but can be brittle if classes/structure change. |
+| **XPath** | `page.locator('xpath=...')` | `locator('xpath=//button[@type="submit"]')` | Full XPath when nothing else fits. Supported but prefer role/label/testid when possible. |
+
+Use **getByRole** for buttons, links, headings, and form controls. 
+Use **getByLabel** for inputs with labels. 
+Use **getByTestId** when the app has `data-testid` attributes. 
+Use **locator('#id')** for a stable `id`. 
+Use **locator('css')** or **locator('xpath=...')** only when you need structure or attributes that the other locators can’t express. 
+This order (role → label → testid → id → CSS/XPath) keeps tests resilient to layout and copy changes.
 
 **Adding a new suite (e.g. a new feature area):**
 
