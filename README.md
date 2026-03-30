@@ -22,8 +22,11 @@ npm test
 # Run smoke suite only
 npm run test:smoke
 
-# Run CRDC Submission Portal homepage POC (hub.datacommons.cancer.gov)
+# Run CRDC Submission Portal homepage tests (hub.datacommons.cancer.gov)
 npm run test:crdc
+
+# Run STS homepage stub tests (sts.cancer.gov)
+npm run test:sts
 
 # Run with UI mode
 npm run test:ui
@@ -48,14 +51,14 @@ npm run typecheck
 The framework includes a proof-of-concept suite for the [CRDC Submission Portal](https://hub.datacommons.cancer.gov/) homepage:
 
 - **Page object:** `src/pages/home.page.ts` — header, main content, footer, system use warning dialog
-- **Tests:** `tests/ui/crdc-homepage.spec.ts` — title, heading, nav links, footer, warning dialog, login navigation
+- **Tests:** `tests/crdc/crdc-homepage.spec.ts` — title, heading, nav links, footer, warning dialog, login navigation
 
 Run with: `npm run test:crdc` (uses project `crdc-homepage` with baseURL `https://hub.datacommons.cancer.gov`). Ensure Playwright browsers are installed: `npx playwright install`.
 
 ## Configuration
 
-- Copy `.env.example` to `.env` and set `TEST_ENV` and `BASE_URL` as needed.
-- Timeouts and constants live in `config/constants.ts`; environment URL resolution in `config/env/urls.ts`.
+- Copy `.env.example` to `.env` and set `PROJECT` (crdc | sts), `TEST_ENV`, and optionally `BASE_URL`.
+- Timeouts and constants: `config/constants.ts`. App URLs and resolution: `config/apps.ts`; see `docs/MULTI-PROJECT-EXTENSIBILITY-PLAN.md`.
 
 ## CI/CD
 

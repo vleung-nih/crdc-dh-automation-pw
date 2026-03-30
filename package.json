@@ -9,6 +9,8 @@
     "test:smoke": "playwright test tests/smoke",
     "test:crdc": "playwright test --project=crdc-homepage",
     "test:crdc:headed": "playwright test --project=crdc-homepage --headed",
+    "test:sts": "playwright test --project=sts-homepage",
+    "test:sts:headed": "playwright test --project=sts-homepage --headed",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",

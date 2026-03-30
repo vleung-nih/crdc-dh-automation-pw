@@ -1,17 +1,16 @@
 /**
  * Environment configuration.
  *
- * Re-exports the EnvConfig type and the sync URL resolver used by
- * playwright.config.ts. getCrdcBaseURL() in urls.ts is the canonical
- * source for base URL resolution.
+ * Re-exports the EnvConfig type and getBaseURL from config/apps.ts.
+ * Use getBaseURL(project) for any app: getBaseURL('crdc'), getBaseURL('sts'), etc.
  *
- * Use TEST_ENV (prod | qa | stage | qa2) to select CRDC hub profile.
+ * PROJECT (crdc, sts, ...) and TEST_ENV (prod, qa, stage, ...) select app and env.
  * Never branch on env inside tests — inject config via fixture or baseURL.
  */
 import { DEFAULT_ENV } from '../constants';
 
 export type { EnvConfig } from './types';
-export { getCrdcBaseURL } from './urls';
+export { getBaseURL } from './urls';
 
 /** Returns the current environment name from TEST_ENV or the default. */
 export function getEnvName(): string {

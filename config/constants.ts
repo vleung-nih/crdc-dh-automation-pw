@@ -17,3 +17,6 @@ export const API_RESPONSE_TIMEOUT = 10_000;
 
 /** Default environment when TEST_ENV is not set. */
 export const DEFAULT_ENV = 'prod';
+
+/** Default project (app) when PROJECT is not set. Used by getBaseURL() for default baseURL. */
+export const DEFAULT_PROJECT = 'crdc';

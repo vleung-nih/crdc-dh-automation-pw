@@ -7,8 +7,9 @@ CLI commands, environment variables, and how to view reports and traces.
 | Command | Description |
 |---------|-------------|
 | `npm test` | Run all tests (default: list reporter + HTML report). |
-| `npm run test:smoke` | Run only `tests/smoke/`. |
-| `npm run test:crdc` | Run CRDC hub homepage POC tests (hub.datacommons.cancer.gov). |
+| `npm run test:smoke` | Run only `tests/smoke/` (uses default PROJECT baseURL). |
+| `npm run test:crdc` | Run CRDC hub homepage tests (hub.datacommons.cancer.gov). |
+| `npm run test:sts` | Run STS homepage stub tests (sts.cancer.gov). |
 | `npm run test:ui` | Open Playwright UI mode (explore, run, debug). |
 | `npm run test:headed` | Run tests with browser visible. |
 | `npm run test:debug` | Run with Playwright inspector (step-through). |
@@ -19,26 +20,27 @@ CLI commands, environment variables, and how to view reports and traces.
 - `./scripts/run-smoke.sh` — smoke suite only. Use on every commit.
 - `./scripts/run-regression.sh` — full suite. Use on schedule or pre-release.
 
-Both respect `TEST_ENV` and forward extra args to `playwright test`.
+Both respect `PROJECT`, `TEST_ENV`, and forward extra args to `playwright test`.
 
 ## Environment variables
 
 | Variable | Purpose |
 |----------|---------|
-| `TEST_ENV` | CRDC hub profile: `prod`, `qa`, `stage`, `qa2`. Default: `prod`. |
-| `BASE_URL` | Override the hub URL. If set, it is used instead of the `TEST_ENV` default. |
+| `PROJECT` | Which app to run: `crdc`, `sts`. Default: `crdc`. Affects default baseURL and smoke. See `config/apps.ts`. |
+| `TEST_ENV` | Environment for that app: `prod`, `qa`, `stage` (and `qa2` for crdc only). Default: `prod`. |
+| `BASE_URL` | Override the base URL. If set, it is used instead of the PROJECT + TEST_ENV URL. |
 | `LOG_LEVEL` | Optional: `debug`, `info`, `warn`, `error`. Default: `info`. |
 | `CI` | Set by most CI systems; enables retries and reduces workers. |
 
-**TEST_ENV vs BASE_URL:** Set **TEST_ENV** to pick a named environment (prod, qa, stage, qa2); each has a default URL in `config/env/urls.ts`. Set **BASE_URL** only when you need a specific URL (e.g. a custom host). If both are set, **BASE_URL wins** and the TEST_ENV default is ignored. You typically set only one: use TEST_ENV for standard envs, or BASE_URL for a one-off URL.
+**PROJECT and TEST_ENV:** Set **PROJECT** to choose the app (crdc, sts); set **TEST_ENV** to choose the environment (prod, qa, stage). Base URLs are in `config/apps.ts`. Set **BASE_URL** only when you need a one-off override; if set, it wins over PROJECT + TEST_ENV.
 
 ### Using a `.env` file
 
 The project loads `.env` automatically (via `dotenv`) when Playwright starts. To run against a specific environment without passing vars on the command line:
 
 1. Copy `.env.example` to `.env` in the project root.
-2. Edit `.env` and set `TEST_ENV` (e.g. `TEST_ENV=qa`) and optionally `BASE_URL` if you want to override.
-3. Run `npm run test:crdc` (or any test command); values from `.env` are applied.
+2. Edit `.env` and set `PROJECT` (e.g. `crdc` or `sts`), `TEST_ENV` (e.g. `qa`), and optionally `BASE_URL` if you want to override.
+3. Run `npm run test:crdc`, `npm run test:sts`, or any test command; values from `.env` are applied.
 
 Do not commit `.env`; it is for local overrides and may contain secrets.
 
@@ -50,7 +52,7 @@ To run the homepage tests against the CRDC Submission Portal:
 npm run test:crdc
 ```
 
-This uses the `crdc-homepage` project, which sets `baseURL` to `https://hub.datacommons.cancer.gov` and runs only `tests/ui/crdc-homepage.spec.ts`. By default tests run **headless**. To watch the browser:
+This uses the `crdc-homepage` project, which sets `baseURL` to the CRDC hub and runs all specs in `tests/crdc/`. By default tests run **headless**. To watch the browser:
 
 ```bash
 npm run test:crdc:headed
@@ -63,7 +65,19 @@ npx playwright test --project=crdc-homepage
 npx playwright test --project=crdc-homepage --headed
 ```
 
-Or run with a custom base URL: `BASE_URL=https://hub.datacommons.cancer.gov npx playwright test tests/ui/crdc-homepage.spec.ts`
+Or run with a custom base URL: `BASE_URL=https://hub.datacommons.cancer.gov npx playwright test tests/crdc/`
+
+## STS Homepage (stub tests)
+
+STS (https://sts.cancer.gov) has stub tests; the app may be down. Run with:
+
+```bash
+npm run test:sts
+# or with browser visible
+npm run test:sts:headed
+```
+
+Use `PROJECT=sts` and `TEST_ENV` (prod, qa, stage) to target the desired STS environment. STS has no qa2. Update `tests/sts/` specs and `src/pages/sts-home.page.ts` when the real page is available.
 
 ## Run by project (browser)
 
@@ -100,7 +114,7 @@ npx playwright test --grep-invert @slow
 
 ## Smoke tests
 
-`npm run test:smoke` runs the suite in `tests/smoke/`. Those tests use the **default project** and thus the **default baseURL** from config (from `getCrdcBaseURL()`, i.e. the CRDC hub for the current `TEST_ENV`). When the framework supports multiple projects, smoke still runs against whatever is the default baseURL unless you run a specific project; document any project-specific smoke in the multi-project plan.
+`npm run test:smoke` runs the suite in `tests/smoke/`. Those tests use the **default project** and thus the **default baseURL** from config (`getBaseURL()` with no arg, i.e. the app for current `PROJECT` and `TEST_ENV`). With multiple projects, smoke runs against that default baseURL unless you run a specific project; see the multi-project plan for project-specific smoke.
 
 ## Viewing results
 
